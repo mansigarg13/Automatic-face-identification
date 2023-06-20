@@ -1,0 +1,57 @@
+
+#include <Servo.h>
+
+Servo myservo;
+
+boolean string_completed = false;
+String input_string = "";
+
+
+const int close_deg = 40;
+const int open_deg = close_deg+90;
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+  input_string.reserve(100);
+  myservo.attach(D6);
+  Serial.println("HW READY");
+}
+
+uint32_t timestamp  = 0;
+
+int door_state = -1;
+
+void loop() {
+  
+  while(Serial.available() > 0){
+    char inC = Serial.read();
+    if(inC == '\n' || inC == '\r'){
+       string_completed = true; 
+    }
+    input_string  += inC;
+  }
+
+  if(string_completed == true){
+    string_completed =  false;
+
+    if(input_string.indexOf("OPEN-DOOR") != -1){
+      timestamp = millis();
+      if(door_state != 1){
+        myservo.write(open_deg);
+        door_state = 1;
+        Serial.println("OPENED");
+      }
+    }
+  }
+
+  if(timestamp + 10000 < millis()){
+    if(door_state != 0){
+        myservo.write(close_deg);
+        door_state = 0;
+        Serial.println("OPENED");
+    }   
+  }
+
+  
+}
